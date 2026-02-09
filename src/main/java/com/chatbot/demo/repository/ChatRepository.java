@@ -10,7 +10,13 @@ import java.util.List;
 
 public interface ChatRepository extends JpaRepository<ChatMessage, Long> {
     List<ChatMessage> findBySessionIdOrderByTimestampAsc(String sessionId);
-    @Query("SELECT DISTINCT c.sessionId FROM ChatMessage c ORDER BY c.sessionId DESC")
+
+    @Query("""
+              SELECT c.sessionId
+              FROM ChatMessage c
+              GROUP BY c.sessionId
+              ORDER BY MAX(c.timestamp) DESC
+            """)
     List<String> findAllSessionIds();
 
     @Modifying
