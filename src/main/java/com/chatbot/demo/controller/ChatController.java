@@ -10,7 +10,11 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/chat")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {
+        "https://front-end-inky-iota.vercel.app",
+        "http://localhost:3000"
+})
+
 public class ChatController {
 
     private final AIService aiService;
