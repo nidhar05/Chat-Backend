@@ -6,6 +6,8 @@ import com.chatbot.demo.entity.ChatMessage;
 import com.chatbot.demo.repository.ChatRepository;
 import com.chatbot.demo.service.AIService;
 import java.util.List;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -43,5 +45,13 @@ public class ChatController {
     public List<ChatMessage> getChat(@PathVariable String sessionId) {
         return chatRepository.findBySessionIdOrderByTimestampAsc(sessionId);
     }
+
+    @DeleteMapping("/sessions/{sessionId}")
+    public ResponseEntity<Void> deleteSession(@PathVariable String sessionId) {
+        chatRepository.deleteBySessionId(sessionId);
+        return ResponseEntity.noContent().build();
+    }
+
+
 
 }
