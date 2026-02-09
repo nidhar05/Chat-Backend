@@ -12,6 +12,9 @@ public class ChatMessage {
 
     private String sessionId;
 
+    private String title;
+
+
     @Column(columnDefinition = "TEXT")
     private String role; // USER or AI
 
@@ -62,4 +65,13 @@ public class ChatMessage {
     public LocalDateTime getTimestamp() {
         return timestamp;
     }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
 }

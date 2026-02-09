@@ -12,16 +12,22 @@ public interface ChatRepository extends JpaRepository<ChatMessage, Long> {
     List<ChatMessage> findBySessionIdOrderByTimestampAsc(String sessionId);
 
     @Query("""
-                SELECT c.sessionId
-                FROM ChatMessage c
-                WHERE c.sessionId IS NOT NULL
-                GROUP BY c.sessionId
-                ORDER BY MAX(c.timestamp) DESC
+            SELECT c.sessionId, MAX(c.title), MAX(c.timestamp)
+            FROM ChatMessage c
+            WHERE c.sessionId IS NOT NULL
+            GROUP BY c.sessionId
+            ORDER BY MAX(c.timestamp) DESC
             """)
-    List<String> findAllSessionIds();
+    List<Object[]> findAllSessionsWithTitle();
 
 
     @Modifying
     @Transactional
     void deleteBySessionId(String sessionId);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE ChatMessage c SET c.title = :title WHERE c.sessionId = :sessionId")
+    void updateTitleBySessionId(String sessionId, String title);
+
 }
