@@ -16,16 +16,23 @@ public class MemoryService {
         this.chatRepository = chatRepository;
     }
 
-    public String buildMemorySummary(String sessionId) {
+    // ✅ NOW USER-SAFE
+    public String buildMemorySummary(String sessionId, Long userId) {
 
         List<ChatMessage> history =
-                chatRepository.findBySessionIdOrderByTimestampAsc(sessionId);
+                chatRepository.findBySessionIdAndUserIdOrderByTimestampAsc(
+                        sessionId,
+                        userId
+                );
 
-        if (history.isEmpty()) return "No prior patient information.";
+        if (history.isEmpty()) {
+            return "No prior patient information.";
+        }
 
         return history.stream()
-                .filter(m -> m.getRole().equals("USER"))
-                .map(ChatMessage::getMessage)
-                .collect(Collectors.joining("; "));
+                .filter(m -> "USER".equals(m.getRole()))
+                .map(m -> String.valueOf(m.getMessage())) // 🔥 FORCE String
+                .collect(java.util.stream.Collectors.joining("; "));
     }
+
 }

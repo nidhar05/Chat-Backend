@@ -33,12 +33,12 @@ public class AIService {
         this.memoryService = memoryService;
     }
 
-    public String processMessage(String sessionId, String userMessage) {
+    public String processMessage(String sessionId, String userMessage, Long userId) {
 
         try {
             // 1️⃣ Build memory summary
             String memorySummary =
-                    memoryService.buildMemorySummary(sessionId);
+                    memoryService.buildMemorySummary(sessionId, userId);
 
             // 2️⃣ SYSTEM PROMPT (Ayurvedic Physician)
             String systemPrompt = """
@@ -84,53 +84,53 @@ Patient says:
 
             requestJson.put("messages", messages);
 
-            // 5️⃣ HTTP call to Groq
-            URL url = new URL(GROQ_URL);
-            HttpURLConnection con =
-                    (HttpURLConnection) url.openConnection();
+            HttpURLConnection con = (HttpURLConnection)
+                    new URL(GROQ_URL).openConnection();
 
             con.setRequestMethod("POST");
-            con.setRequestProperty(
-                    "Authorization", "Bearer " + groqApiKey);
-            con.setRequestProperty(
-                    "Content-Type", "application/json");
+            con.setRequestProperty("Authorization", "Bearer " + groqApiKey);
+            con.setRequestProperty("Content-Type", "application/json");
             con.setDoOutput(true);
 
-            try (OutputStream os = con.getOutputStream()) {
-                os.write(requestJson.toString()
-                        .getBytes(StandardCharsets.UTF_8));
-            }
+            con.getOutputStream().write(
+                    requestJson.toString().getBytes(StandardCharsets.UTF_8));
 
-            // 6️⃣ Read response
             BufferedReader br = new BufferedReader(
-                    new InputStreamReader(
-                            con.getInputStream(),
-                            StandardCharsets.UTF_8));
+                    new InputStreamReader(con.getInputStream()));
 
             StringBuilder sb = new StringBuilder();
             String line;
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
+            while ((line = br.readLine()) != null) sb.append(line);
 
-            JSONObject responseJson =
-                    new JSONObject(sb.toString());
+            String aiReply = new JSONObject(sb.toString())
+                    .getJSONArray("choices")
+                    .getJSONObject(0)
+                    .getJSONObject("message")
+                    .getString("content");
 
-            String aiReply =
-                    responseJson
-                            .getJSONArray("choices")
-                            .getJSONObject(0)
-                            .getJSONObject("message")
-                            .getString("content");
+            // ✅ SAVE USER MESSAGE
+            ChatMessage userMsg = new ChatMessage();
+            userMsg.setSessionId(sessionId);
+            userMsg.setRole("USER");
+            userMsg.setMessage(userMessage);
+            userMsg.setUserId(userId);
+            userMsg.setTimestamp(java.time.Instant.now());
+            userMsg.setTitle(userMessage);
 
-            // 7️⃣ Store conversation
-            chatRepository.save(
-                    new ChatMessage(sessionId, "USER", userMessage));
-            chatRepository.save(
-                    new ChatMessage(sessionId, "AI", aiReply));
+            chatRepository.save(userMsg);
+
+            // ✅ SAVE AI MESSAGE
+            ChatMessage aiMsg = new ChatMessage();
+            aiMsg.setSessionId(sessionId);
+            aiMsg.setRole("AI");
+            aiMsg.setMessage(aiReply);
+            aiMsg.setUserId(userId);
+            aiMsg.setTimestamp(java.time.Instant.now());
+            aiMsg.setTitle(userMessage);
+
+            chatRepository.save(aiMsg);
 
             return aiReply;
-
         } catch (Exception e) {
             e.printStackTrace();
             return "I’m unable to continue the assessment right now. Please try again.";

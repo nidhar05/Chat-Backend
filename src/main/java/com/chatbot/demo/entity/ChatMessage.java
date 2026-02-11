@@ -1,6 +1,8 @@
 package com.chatbot.demo.entity;
 
 import jakarta.persistence.*;
+
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -10,68 +12,70 @@ public class ChatMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private long userId;
+
     private String sessionId;
 
-    private String title;
-
-
-    @Column(columnDefinition = "TEXT")
-    private String role; // USER or AI
+    private String role;
 
     @Column(columnDefinition = "TEXT")
     private String message;
 
-    private LocalDateTime timestamp;
+    private LocalDateTime timestamp = LocalDateTime.now();
+
+    private String title;
 
     public ChatMessage() {}
 
-    public ChatMessage(String sessionId, String role, String message) {
+    public ChatMessage(String sessionId, Long userId, String role, String message) {
         this.sessionId = sessionId;
+        this.userId = userId;
         this.role = role;
         this.message = message;
         this.timestamp = LocalDateTime.now();
     }
 
-    // ✅ GETTERS & SETTERS (THIS FIXES YOUR ERROR)
-
-    public Long getId() {
-        return id;
+    public ChatMessage(String sessionId, String user, String userMessage) {
     }
 
-    public String getSessionId() {
-        return sessionId;
+
+    public Object getRole() {
+        return role;
+    }
+
+    public Object getMessage() {
+        return message;
+    }
+
+    public Long getUserId() {
+        return userId;
     }
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
     }
 
-    public String getRole() {
-        return role;
+    public void setRole(String user) {
+        this.role = user;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setMessage(String userMessage) {
+        this.message = userMessage;
     }
 
-    public String getMessage() {
-        return message;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setTimestamp(Instant now) {
+        this.timestamp = LocalDateTime.now();
     }
 
-    public LocalDateTime getTimestamp() {
-        return timestamp;
+    public void setTitle(String userMessage) {
+        this.title = userMessage;
     }
 
-    public String getTitle() {
-        return title;
-    }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
+    // getters
 }
+
