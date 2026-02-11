@@ -1,12 +1,16 @@
 package com.chatbot.demo.controller;
 
-import com.chatbot.demo.entity.User;
-import com.chatbot.demo.repository.UserRepository;
-import com.chatbot.demo.service.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.chatbot.demo.entity.User;
+import com.chatbot.demo.repository.UserRepository;
+import com.chatbot.demo.service.JwtService;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -17,8 +21,8 @@ public class AuthController {
     private final JwtService jwtService;
 
     public AuthController(UserRepository userRepo,
-                          PasswordEncoder encoder,
-                          JwtService jwtService) {
+            PasswordEncoder encoder,
+            JwtService jwtService) {
         this.userRepo = userRepo;
         this.encoder = encoder;
         this.jwtService = jwtService;
@@ -37,9 +41,13 @@ public class AuthController {
         }
 
         user.setPassword(encoder.encode(user.getPassword()));
-        userRepo.save(user);
+        User savedUser = userRepo.save(user);
 
-        return ResponseEntity.ok().build();
+        // ✅ Generate token using correct service
+        String token = jwtService.generateToken(savedUser.getId());
+
+        // ✅ Return token
+        return ResponseEntity.ok(token);
     }
 
     // =====================
@@ -67,4 +75,3 @@ public class AuthController {
         return ResponseEntity.ok(token);
     }
 }
-

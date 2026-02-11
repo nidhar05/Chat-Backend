@@ -1,5 +1,20 @@
 package com.chatbot.demo.controller;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.chatbot.demo.dto.ChatRequest;
 import com.chatbot.demo.dto.ChatResponse;
 import com.chatbot.demo.entity.ChatMessage;
@@ -8,12 +23,6 @@ import com.chatbot.demo.repository.ChatRepository;
 import com.chatbot.demo.repository.ChatSessionRepository;
 import com.chatbot.demo.service.AIService;
 import com.chatbot.demo.service.JwtService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -54,6 +63,24 @@ public class ChatController {
         return new ChatResponse(reply);
     }
 
+    @PostMapping("/sessions")
+    public ResponseEntity<?> createSession(
+            @RequestHeader("Authorization") String authHeader
+    ) {
+
+        String token = authHeader.replace("Bearer ", "");
+        Long userId = jwtService.extractUserId(token);
+
+        ChatSession session = new ChatSession();
+        session.setSessionId(java.util.UUID.randomUUID().toString()); 
+        session.setUserId(userId);
+        session.setTitle("New Chat");
+
+        chatSessionRepository.save(session);
+
+        return ResponseEntity.ok(session);
+    }
+
     // ================= GET USER SESSIONS =================
     @GetMapping("/sessions")
     public List<Map<String, Object>> getSessions(
@@ -85,7 +112,6 @@ public class ChatController {
         return chatRepository
                 .findBySessionIdAndUserIdOrderByTimestampAsc(sessionId, userId);
     }
-
 
     // ================= DELETE SESSION =================
     @DeleteMapping("/sessions/{sessionId}")
