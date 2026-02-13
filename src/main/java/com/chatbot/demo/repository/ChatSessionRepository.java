@@ -11,6 +11,8 @@ public interface ChatSessionRepository extends JpaRepository<ChatSession, Long> 
 
     List<ChatSession> findByUserId(Long userId);
 
+    List<ChatSession> findByUserIdOrderByLastUpdatedDesc(Long userId);
+
     Optional<ChatSession> findBySessionIdAndUserId(String sessionId, Long userId);
 
     void deleteBySessionId(String sessionId);

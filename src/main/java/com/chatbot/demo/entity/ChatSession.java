@@ -24,6 +24,9 @@ public class ChatSession {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    private LocalDateTime lastUpdated = LocalDateTime.now();
+
+
     @Column(nullable = false)
     private Long userId;
 
@@ -51,11 +54,23 @@ public class ChatSession {
         return createdAt;
     }
 
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public Long getUserId() {
         return userId;
     }
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public LocalDateTime getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated(LocalDateTime lastUpdated) {
+        this.lastUpdated = lastUpdated;
     }
 }

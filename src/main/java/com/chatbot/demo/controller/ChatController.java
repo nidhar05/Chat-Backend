@@ -1,5 +1,6 @@
 package com.chatbot.demo.controller;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,9 @@ public class ChatController {
                 .findBySessionIdAndUserId(request.getSessionId(), userId)
                 .orElseThrow(() -> new RuntimeException("Invalid session"));
 
+        session.setLastUpdated(LocalDateTime.now());
+        chatSessionRepository.save(session);
+
         String reply = aiService.processMessage(
                 request.getSessionId(),
                 request.getMessage(),
@@ -98,13 +102,13 @@ public class ChatController {
         Long userId = jwtService.extractUserId(token);
 
         List<ChatSession> sessions
-                = chatSessionRepository.findByUserId(userId);
+                = chatSessionRepository.findByUserIdOrderByLastUpdatedDesc(userId);
 
         return sessions.stream().map(s -> {
             Map<String, Object> map = new HashMap<>();
             map.put("sessionId", s.getSessionId());
             map.put("title", s.getTitle());
-            map.put("lastUpdated", s.getCreatedAt());
+            map.put("lastUpdated", s.getLastUpdated());
             return map;
         }).toList();
     }
