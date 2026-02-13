@@ -1,9 +1,13 @@
 package com.chatbot.demo.entity;
 
-import jakarta.persistence.*;
-
 import java.time.Instant;
 import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 @Entity
 public class ChatMessage {
@@ -14,6 +18,7 @@ public class ChatMessage {
 
     private long userId;
 
+    @Column(name = "session_id")
     private String sessionId;
 
     private String role;
@@ -25,7 +30,8 @@ public class ChatMessage {
 
     private String title;
 
-    public ChatMessage() {}
+    public ChatMessage() {
+    }
 
     public ChatMessage(String sessionId, Long userId, String role, String message) {
         this.sessionId = sessionId;
@@ -38,12 +44,11 @@ public class ChatMessage {
     public ChatMessage(String sessionId, String user, String userMessage) {
     }
 
-
-    public Object getRole() {
+    public String getRole() {
         return role;
     }
 
-    public Object getMessage() {
+    public String getMessage() {
         return message;
     }
 
@@ -75,7 +80,5 @@ public class ChatMessage {
         this.title = userMessage;
     }
 
-
     // getters
 }
-

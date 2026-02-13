@@ -1,20 +1,20 @@
 package com.chatbot.demo.repository;
 
-import com.chatbot.demo.entity.ChatMessage;
-import com.chatbot.demo.entity.ChatSession;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import com.chatbot.demo.entity.ChatMessage;
 
 
 public interface ChatRepository extends JpaRepository<ChatMessage, Long> {
 
     // ✅ get messages of a session
-    List<ChatMessage> findBySessionIdOrderByTimestampAsc(String sessionId, Long userId);
+    // List<ChatMessage> findBySessionIdOrderByTimestampAsc(String sessionId, Long userId);
 
     // ✅ delete a session
     @Modifying

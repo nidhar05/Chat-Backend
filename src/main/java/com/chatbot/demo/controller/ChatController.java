@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.chatbot.demo.dto.ChatRequest;
 import com.chatbot.demo.dto.ChatResponse;
+import com.chatbot.demo.dto.RenameRequest;
 import com.chatbot.demo.entity.ChatMessage;
 import com.chatbot.demo.entity.ChatSession;
 import com.chatbot.demo.repository.ChatRepository;
@@ -51,8 +52,14 @@ public class ChatController {
             @RequestHeader("Authorization") String authHeader,
             @RequestBody ChatRequest request
     ) {
+
         String token = authHeader.replace("Bearer ", "");
         Long userId = jwtService.extractUserId(token);
+
+        // ✅ Validate session exists and belongs to user
+        ChatSession session = chatSessionRepository
+                .findBySessionIdAndUserId(request.getSessionId(), userId)
+                .orElseThrow(() -> new RuntimeException("Invalid session"));
 
         String reply = aiService.processMessage(
                 request.getSessionId(),
@@ -72,7 +79,7 @@ public class ChatController {
         Long userId = jwtService.extractUserId(token);
 
         ChatSession session = new ChatSession();
-        session.setSessionId(java.util.UUID.randomUUID().toString()); 
+        session.setSessionId(java.util.UUID.randomUUID().toString());
         session.setUserId(userId);
         session.setTitle("New Chat");
 
@@ -86,16 +93,18 @@ public class ChatController {
     public List<Map<String, Object>> getSessions(
             @RequestHeader("Authorization") String authHeader
     ) {
+
         String token = authHeader.replace("Bearer ", "");
         Long userId = jwtService.extractUserId(token);
 
-        List<Object[]> rows = chatRepository.findSessionsFromMessages(userId);
+        List<ChatSession> sessions
+                = chatSessionRepository.findByUserId(userId);
 
-        return rows.stream().map(r -> {
+        return sessions.stream().map(s -> {
             Map<String, Object> map = new HashMap<>();
-            map.put("sessionId", r[0]);
-            map.put("title", r[1]);
-            map.put("lastUpdated", r[2]);
+            map.put("sessionId", s.getSessionId());
+            map.put("title", s.getTitle());
+            map.put("lastUpdated", s.getCreatedAt());
             return map;
         }).toList();
     }
@@ -115,22 +124,46 @@ public class ChatController {
 
     // ================= DELETE SESSION =================
     @DeleteMapping("/sessions/{sessionId}")
-    public ResponseEntity<Void> deleteSession(@PathVariable String sessionId) {
+    public ResponseEntity<Void> deleteSession(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable String sessionId
+    ) {
+
+        String token = authHeader.replace("Bearer ", "");
+        Long userId = jwtService.extractUserId(token);
+
+        ChatSession session = chatSessionRepository
+                .findBySessionIdAndUserId(sessionId, userId)
+                .orElseThrow(() -> new RuntimeException("Session not found"));
+
+        // delete messages first
         chatRepository.deleteBySessionId(sessionId);
-        chatSessionRepository.deleteBySessionId(sessionId);
+
+        // then delete session
+        chatSessionRepository.delete(session);
+
         return ResponseEntity.noContent().build();
     }
 
     // ================= RENAME SESSION =================
     @PutMapping("/sessions/{sessionId}/rename")
     public ResponseEntity<Void> renameSession(
+            @RequestHeader("Authorization") String authHeader,
             @PathVariable String sessionId,
-            @RequestBody Map<String, String> body
+            @RequestBody RenameRequest request
     ) {
-        chatRepository.updateTitleBySessionId(
-                sessionId,
-                body.get("title")
-        );
+
+        String token = authHeader.replace("Bearer ", "");
+        Long userId = jwtService.extractUserId(token);
+
+        ChatSession session = chatSessionRepository
+                .findBySessionIdAndUserId(sessionId, userId)
+                .orElseThrow(() -> new RuntimeException("Session not found"));
+
+        session.setTitle(request.getTitle());
+        chatSessionRepository.save(session);
+
         return ResponseEntity.ok().build();
     }
+
 }
