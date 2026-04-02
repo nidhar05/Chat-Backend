@@ -51,11 +51,7 @@ public class SecurityConfig {
 
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "http://localhost:3001",
-                "https://front-end-inky-iota.vercel.app"
-        ));
+        config.setAllowedOriginPatterns(List.of("*"));
 
         config.setAllowedMethods(List.of(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS"
